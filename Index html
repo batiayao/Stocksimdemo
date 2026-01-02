@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockSim - Student Investment Simulator</title>
+<style>
+body { font-family: Arial, sans-serif; margin:0; background:#f2f4f7; color:#333; }
+header { background:#004080; color:#fff; padding:20px; text-align:center; }
+header p { margin:5px 0 15px 0; font-size:0.9em; }
+nav button { margin:5px; padding:10px 15px; background:#0073e6; color:white; border:none; border-radius:4px; cursor:pointer; }
+nav button:hover { background:#005bb5; }
+main { padding:20px; }
+table { width:100%; border-collapse:collapse; margin-top:10px; margin-bottom:15px; }
+th, td { border:1px solid #ccc; padding:8px; text-align:center; }
+.buttons button { margin:5px; padding:8px 12px; background:#28a745; color:white; border:none; border-radius:3px; cursor:pointer; }
+.buttons button:hover { background:#218838; }
+textarea, input, select { width:100%; padding:8px; margin-top:5px; border-radius:3px; border:1px solid #ccc; }
+.company, .programOption, .enrollForm { background:#fff; padding:15px; margin-bottom:10px; border-radius:5px; box-shadow:0 0 5px rgba(0,0,0,0.1); }
+footer { text-align:center; padding:15px; background:#004080; color:white; margin-top:20px; }
+canvas { max-width:100%; margin-top:10px; background:#fff; border-radius:5px; padding:10px; box-shadow:0 0 5px rgba(0,0,0,0.1); }
+.successMsg { color:green; font-weight:bold; margin-top:10px; }
+</style>
+</head>
+<body>
+
+<header>
+<h1>StockSim</h1>
+<p>Learn Investing Through Simulation | Educational Use Only</p>
+<nav>
+<button onclick="showSection('portfolio')">Portfolio</button>
+<button onclick="showSection('learning')">Learning</button>
+<button onclick="showSection('program')">Program Info</button>
+<button onclick="showSection('enroll')">Enroll</button>
+</nav>
+</header>
+
+<main>
+
+<!-- Portfolio Section -->
+<section id="portfolio">
+<h2>My Portfolio</h2>
+<p>Virtual Balance: $<span id="balance">10000</span></p>
+<table id="portfolioTable">
+<tr><th>Stock</th><th>Shares</th><th>Price</th><th>Value</th></tr>
+</table>
+<div class="buttons">
+<button onclick="buyStock('AAPL',5)">Buy 5 AAPL</button>
+<button onclick="sellStock('AAPL',5)">Sell 5 AAPL</button>
+<button onclick="buyStock('TSLA',2)">Buy 2 TSLA</button>
+<button onclick="sellStock('TSLA',2)">Sell 2 TSLA</button>
+<button onclick="buyStock('GOOG',1)">Buy 1 GOOG</button>
+<button onclick="sellStock('GOOG',1)">Sell 1 GOOG</button>
+</div>
+<p>ROI: <span id="roi">0%</span></p>
+<p>AAR: <span id="aar">0%</span></p>
+
+<h3>Reflection</h3>
+<textarea placeholder="Why I chose these stocks..." id="reflection" rows="4"></textarea>
+<button onclick="submitReflection()">Submit Reflection</button>
+<p id="reflectionStatus"></p>
+
+<canvas id="portfolioChart" height="200"></canvas>
+</section>
+
+<!-- Learning Section -->
+<section id="learning" style="display:none">
+<h2>Learning & Research</h2>
+<div class="company">
+<h3>AAPL - Apple Inc.</h3>
+<p>Technology company. Key metrics: Revenue growth, market share, innovation index.</p>
+</div>
+<div class="company">
+<h3>TSLA - Tesla Inc.</h3>
+<p>Electric vehicles & energy. Key metrics: Production volume, profitability, innovation.</p>
+</div>
+<div class="company">
+<h3>GOOG - Alphabet Inc.</h3>
+<p>Parent company of Google. Key metrics: Ad revenue, user growth, diversification.</p>
+</div>
+<h3>Research Checklist</h3>
+<ul>
+<li>Check recent news about the company</li>
+<li>Understand financial ratios (P/E, EPS)</li>
+<li>Analyze industry trends</li>
+<li>Reflect on why you would invest</li>
+</ul>
+</section>
+
+<!-- Program Info Section -->
+<section id="program" style="display:none">
+<h2>StockSim Program Offerings</h2>
+<div class="programOption">
+<h3>Option A: Guided 4–8 Week Program</h3>
+<ul>
+<li>Starter PDF guide</li>
+<li>Weekly research themes</li>
+<li>ROI & AAR tracking templates</li>
+<li>Leaderboard for student portfolios</li>
+</ul>
+</div>
+<div class="programOption">
+<h3>Option B: Portfolio Toolkit</h3>
+<ul>
+<li>Excel/Google Sheet for ROI & AAR</li>
+<li>Research checklist</li>
+<li>Reflection journal</li>
+</ul>
+</div>
+<h3>Metrics for Assessment</h3>
+<ul>
+<li>Portfolio ROI</li>
+<li>Average Annual Return (AAR)</li>
+<li>Risk vs Return analysis</li>
+<li>Participation rate</li>
+<li>Learning outcomes</li>
+</ul>
+</section>
+
+<!-- Enrollment Form -->
+<section id="enroll" style="display:none">
+<h2>Enroll in StockSim</h2>
+<div class="enrollForm">
+<label>Name:</label>
+<input type="text" id="name" placeholder="Enter your full name">
+<label>Email:</label>
+<input type="email" id="email" placeholder="Enter your email">
+<label>Phone Number:</label>
+<input type="tel" id="phone" placeholder="Enter your phone number">
+<label>Select Plan:</label>
+<select id="plan">
+<option value="Option A">Option A - 4–8 Week Program</option>
+<option value="Option B">Option B - Portfolio Toolkit</option>
+</select>
+<button onclick="submitEnrollment()">Enroll Now</button>
+<p class="successMsg" id="enrollStatus"></p>
+</div>
+</section>
+
+</main>
+
+<footer>
+<p>StockSim | Educational Use Only | No Real Trading or Financial Advice</p>
+</footer>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Portfolio simulation
+let balance = 10000;
+let portfolio = {AAPL:0, TSLA:0, GOOG:0};
+let prices = {AAPL:150, TSLA:700, GOOG:2800};
+let initialInvestment = 10000;
+let portfolioHistory = [];
+
+const ctx = document.getElementById('portfolioChart').getContext('2d');
+const portfolioChart = new Chart(ctx, {
+type:'line',
+data:{ labels:[], datasets:[{ label:'Portfolio Value ($)', data:[], borderColor:'blue', fill:false }]},
+options:{ responsive:true, scales:{ y:{ beginAtZero:false } } }
+});
+
+function updateChart(totalValue){
+portfolioHistory.push(totalValue);
+portfolioChart.data.labels = portfolioHistory.map((v,i)=>i+1);
+portfolioChart.data.datasets[0].data = portfolioHistory;
+portfolioChart.update();
+}
+
+function updatePortfolio(){
+let table=document.getElementById('portfolioTable');
+table.innerHTML='<tr><th>Stock</th><th>Shares</th><th>Price</th><th>Value</th></tr>';
+let totalValue=balance;
+for(let stock in portfolio){
+let value=portfolio[stock]*prices[stock];
+totalValue+=value;
+table.innerHTML+=`<tr><td>${stock}</td><td>${portfolio[stock]}</td><td>$${prices[stock]}</td><td>$${value}</td></tr>`;
+}
+document.getElementById('balance').innerText=balance.toFixed(2);
+let roi=((totalValue-initialInvestment)/initialInvestment)*100;
+document.getElementById('roi').innerText=roi.toFixed(2)+'%';
+let aar=roi/1;
+document.getElementById('aar').innerText=aar.toFixed(2)+'%';
+updateChart(totalValue);
+}
+
+function buyStock(stock, shares){
+let cost=prices[stock]*shares;
+if(cost<=balance){ balance-=cost; portfolio[stock]+=shares; updatePortfolio(); }
+else{ alert('Not enough balance!'); }
+}
+
+function sellStock(stock, shares){
+if(shares<=portfolio[stock]){ portfolio[stock]-=shares; balance+=prices[stock]*shares; updatePortfolio(); }
+else{ alert('Not enough shares!'); }
+}
+
+function showSection(sectionId){
+document.getElementById('portfolio').style.display='none';
+document.getElementById('learning').style.display='none';
+document.getElementById('program').style.display='none';
+document.getElementById('enroll').style.display='none';
+document.getElementById(sectionId).style.display='block';
+}
+
+function submitReflection(){
+const text=document.getElementById('reflection').value.trim();
+if(text===""){ alert("Please write your reflection before submitting."); }
+else{ document.getElementById('reflectionStatus').innerText="Reflection submitted successfully!"; document.getElementById('reflection').value=""; }
+}
+
+// Enrollment form
+function submitEnrollment(){
+const name=document.getElementById('name').value.trim();
+const email=document.getElementById('email').value.trim();
+const phone=document.getElementById('phone').value.trim();
+const plan=document.getElementById('plan').value;
+if(name===""||email===""||phone===""){ alert("Please fill all fields!"); return; }
+document.getElementById('enrollStatus').innerText=`Thank you ${name}! You have successfully enrolled in ${plan}.`;
+document.getElementById('name').value="";
+document.getElementById('email').value="";
+document.getElementById('phone').value="";
+}
+
+updatePortfolio();
+</script>
+</body>
+</html>
